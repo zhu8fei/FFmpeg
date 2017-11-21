@@ -1,6 +1,11 @@
 FFmpeg README
 =============
 
+./configure --enable-shared --disable-yasm --prefix=/usr/local/ffmpeg
+make -j 8
+make install
+
+
 FFmpeg is a collection of libraries and tools to process multimedia content
 such as audio, video, subtitles and related metadata.
 

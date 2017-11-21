@@ -2,9 +2,11 @@ NAME = avfilter
 DESC = FFmpeg audio/video filtering library
 
 HEADERS = avfilter.h                                                    \
+          avfiltergraph.h                                               \
           buffersink.h                                                  \
           buffersrc.h                                                   \
           version.h                                                     \
+          heatmap.h                                                     \
 
 OBJS = allfilters.o                                                     \
        audio.o                                                          \
@@ -22,16 +24,13 @@ OBJS = allfilters.o                                                     \
        opencl_allkernels.o                                              \
        transform.o                                                      \
        video.o                                                          \
+       heatmap.o                                                        \
 
 OBJS-$(HAVE_THREADS)                         += pthread.o
-
-# subsystems
-OBJS-$(CONFIG_QSVVPP)                        += qsvvpp.o
 
 # audio filters
 OBJS-$(CONFIG_ABENCH_FILTER)                 += f_bench.o
 OBJS-$(CONFIG_ACOMPRESSOR_FILTER)            += af_sidechaincompress.o
-OBJS-$(CONFIG_ACONTRAST_FILTER)              += af_acontrast.o
 OBJS-$(CONFIG_ACOPY_FILTER)                  += af_acopy.o
 OBJS-$(CONFIG_ACROSSFADE_FILTER)             += af_afade.o
 OBJS-$(CONFIG_ACRUSHER_FILTER)               += af_acrusher.o
@@ -102,7 +101,6 @@ OBJS-$(CONFIG_JOIN_FILTER)                   += af_join.o
 OBJS-$(CONFIG_LADSPA_FILTER)                 += af_ladspa.o
 OBJS-$(CONFIG_LOUDNORM_FILTER)               += af_loudnorm.o ebur128.o
 OBJS-$(CONFIG_LOWPASS_FILTER)                += af_biquads.o
-OBJS-$(CONFIG_MCOMPAND_FILTER)               += af_mcompand.o
 OBJS-$(CONFIG_PAN_FILTER)                    += af_pan.o
 OBJS-$(CONFIG_REPLAYGAIN_FILTER)             += af_replaygain.o
 OBJS-$(CONFIG_RESAMPLE_FILTER)               += af_resample.o
@@ -205,6 +203,7 @@ OBJS-$(CONFIG_GBLUR_FILTER)                  += vf_gblur.o
 OBJS-$(CONFIG_GEQ_FILTER)                    += vf_geq.o
 OBJS-$(CONFIG_GRADFUN_FILTER)                += vf_gradfun.o
 OBJS-$(CONFIG_HALDCLUT_FILTER)               += vf_lut3d.o framesync.o
+OBJS-$(CONFIG_HEATMAP_FILTER)                += heatmap.o vf_heatmap.o
 OBJS-$(CONFIG_HFLIP_FILTER)                  += vf_hflip.o
 OBJS-$(CONFIG_HISTEQ_FILTER)                 += vf_histeq.o
 OBJS-$(CONFIG_HISTOGRAM_FILTER)              += vf_histogram.o
@@ -253,7 +252,6 @@ OBJS-$(CONFIG_OCV_FILTER)                    += vf_libopencv.o
 OBJS-$(CONFIG_OPENCL)                        += deshake_opencl.o unsharp_opencl.o
 OBJS-$(CONFIG_OSCILLOSCOPE_FILTER)           += vf_datascope.o
 OBJS-$(CONFIG_OVERLAY_FILTER)                += vf_overlay.o framesync.o
-OBJS-$(CONFIG_OVERLAY_QSV_FILTER)            += vf_overlay_qsv.o
 OBJS-$(CONFIG_OWDENOISE_FILTER)              += vf_owdenoise.o
 OBJS-$(CONFIG_PAD_FILTER)                    += vf_pad.o
 OBJS-$(CONFIG_PALETTEGEN_FILTER)             += vf_palettegen.o
@@ -337,7 +335,6 @@ OBJS-$(CONFIG_VIDSTABDETECT_FILTER)          += vidstabutils.o vf_vidstabdetect.
 OBJS-$(CONFIG_VIDSTABTRANSFORM_FILTER)       += vidstabutils.o vf_vidstabtransform.o
 OBJS-$(CONFIG_VIGNETTE_FILTER)               += vf_vignette.o
 OBJS-$(CONFIG_VMAFMOTION_FILTER)             += vf_vmafmotion.o framesync.o
-OBJS-$(CONFIG_VPP_QSV_FILTER)                += vf_vpp_qsv.o
 OBJS-$(CONFIG_VSTACK_FILTER)                 += vf_stack.o framesync.o
 OBJS-$(CONFIG_W3FDIF_FILTER)                 += vf_w3fdif.o
 OBJS-$(CONFIG_WAVEFORM_FILTER)               += vf_waveform.o
@@ -396,8 +393,6 @@ SKIPHEADERS-$(CONFIG_OPENCL)                 += opencl_internal.h deshake_opencl
 
 OBJS-$(CONFIG_SHARED)                        += log2_tab.o
 
-SKIPHEADERS-$(CONFIG_QSVVPP)                 += qsvvpp.h
-
 TOOLS     = graph2dot
 TESTPROGS = drawutils filtfmts formats integral
 
@@ -405,3 +400,4 @@ TOOLS-$(CONFIG_LIBZMQ) += zmqsend
 
 clean::
 	$(RM) $(CLEANSUFFIXES:%=libavfilter/libmpcodecs/%)
+

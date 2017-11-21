@@ -37,3 +37,6 @@
 /lcov/
 /src
 /mapfile
+.idea/
+CMakeLists.txt
+cmake-build-debug/

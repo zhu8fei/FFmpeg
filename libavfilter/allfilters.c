@@ -42,7 +42,6 @@ static void register_all(void)
 {
     REGISTER_FILTER(ABENCH,         abench,         af);
     REGISTER_FILTER(ACOMPRESSOR,    acompressor,    af);
-    REGISTER_FILTER(ACONTRAST,      acontrast,      af);
     REGISTER_FILTER(ACOPY,          acopy,          af);
     REGISTER_FILTER(ACROSSFADE,     acrossfade,     af);
     REGISTER_FILTER(ACRUSHER,       acrusher,       af);
@@ -113,7 +112,6 @@ static void register_all(void)
     REGISTER_FILTER(LADSPA,         ladspa,         af);
     REGISTER_FILTER(LOUDNORM,       loudnorm,       af);
     REGISTER_FILTER(LOWPASS,        lowpass,        af);
-    REGISTER_FILTER(MCOMPAND,       mcompand,       af);
     REGISTER_FILTER(PAN,            pan,            af);
     REGISTER_FILTER(REPLAYGAIN,     replaygain,     af);
     REGISTER_FILTER(RESAMPLE,       resample,       af);
@@ -215,6 +213,7 @@ static void register_all(void)
     REGISTER_FILTER(GEQ,            geq,            vf);
     REGISTER_FILTER(GRADFUN,        gradfun,        vf);
     REGISTER_FILTER(HALDCLUT,       haldclut,       vf);
+    REGISTER_FILTER(HEATMAP,        heatmap,        vf);
     REGISTER_FILTER(HFLIP,          hflip,          vf);
     REGISTER_FILTER(HISTEQ,         histeq,         vf);
     REGISTER_FILTER(HISTOGRAM,      histogram,      vf);
@@ -262,7 +261,6 @@ static void register_all(void)
     REGISTER_FILTER(OCV,            ocv,            vf);
     REGISTER_FILTER(OSCILLOSCOPE,   oscilloscope,   vf);
     REGISTER_FILTER(OVERLAY,        overlay,        vf);
-    REGISTER_FILTER(OVERLAY_QSV,    overlay_qsv,    vf);
     REGISTER_FILTER(OWDENOISE,      owdenoise,      vf);
     REGISTER_FILTER(PAD,            pad,            vf);
     REGISTER_FILTER(PALETTEGEN,     palettegen,     vf);
@@ -346,7 +344,6 @@ static void register_all(void)
     REGISTER_FILTER(VIDSTABTRANSFORM, vidstabtransform, vf);
     REGISTER_FILTER(VIGNETTE,       vignette,       vf);
     REGISTER_FILTER(VMAFMOTION,     vmafmotion,     vf);
-    REGISTER_FILTER(VPP_QSV,        vpp_qsv,        vf);
     REGISTER_FILTER(VSTACK,         vstack,         vf);
     REGISTER_FILTER(W3FDIF,         w3fdif,         vf);
     REGISTER_FILTER(WAVEFORM,       waveform,       vf);
