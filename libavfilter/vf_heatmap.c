@@ -100,7 +100,7 @@ static int readPoints(char *pointsPath, HeatPoints *points, int w, int h) {
     char *delim = "{}";
     char *p;
     while ((fscanf(file, "%s", line)) == 1) {
-        sscanf(line, "%*[^[][%[^]]],\"t\":%ld}", pl, &tl);
+        sscanf(line, "%*[^[][%[^]]],\"st\":%ld}", pl, &tl);
         formatPoints(points, tl, strtok(pl, delim), w, h);
         while ((p = strtok(NULL, delim)))
             formatPoints(points, tl, p, w, h);
@@ -134,9 +134,6 @@ static int draw(HeatPoints *points, Conf *conf, int frame, heatmap_t *hm, int w,
     while (points->p < points->count && points->t[points->p] <= now) {
         heatmap_add_point(hm, (unsigned) (w * points->x[points->p]), (unsigned) (h * points->y[points->p]));
         ++points->p;
-    }
-    if (frame == 543) {
-        printf("%ld , %lu , %lu , %lu \n", conf->t[last], points->p, points->max, points->count);
     }
     return 0;
 }
