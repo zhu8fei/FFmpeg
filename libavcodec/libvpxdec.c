@@ -47,8 +47,7 @@ static av_cold int vpx_init(AVCodecContext *avctx,
 {
     VPxContext *ctx = avctx->priv_data;
     struct vpx_codec_dec_cfg deccfg = {
-        /* token partitions+1 would be a decent choice */
-        .threads = FFMIN(avctx->thread_count, 16)
+        .threads = FFMIN(avctx->thread_count ? avctx->thread_count : av_cpu_count(), 16)
     };
 
     av_log(avctx, AV_LOG_INFO, "%s\n", vpx_codec_version_str());
@@ -289,6 +288,7 @@ AVCodec ff_libvpx_vp8_decoder = {
     .close          = vpx_free,
     .decode         = vpx_decode,
     .capabilities   = AV_CODEC_CAP_AUTO_THREADS | AV_CODEC_CAP_DR1,
+    .wrapper_name   = "libvpx",
 };
 #endif /* CONFIG_LIBVPX_VP8_DECODER */
 
@@ -310,5 +310,6 @@ AVCodec ff_libvpx_vp9_decoder = {
     .capabilities   = AV_CODEC_CAP_AUTO_THREADS | AV_CODEC_CAP_DR1,
     .init_static_data = ff_vp9_init_static,
     .profiles       = NULL_IF_CONFIG_SMALL(ff_vp9_profiles),
+    .wrapper_name   = "libvpx",
 };
 #endif /* CONFIG_LIBVPX_VP9_DECODER */

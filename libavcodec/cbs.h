@@ -22,6 +22,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "libavutil/buffer.h"
+
 #include "avcodec.h"
 
 
@@ -46,6 +48,7 @@ struct CodedBitstreamType;
  * H.264 / AVC: nal_unit_type
  * H.265 / HEVC: nal_unit_type
  * MPEG-2: start code value (without prefix)
+ * VP9: unused, set to zero (every unit is a frame)
  */
 typedef uint32_t CodedBitstreamUnitType;
 
@@ -81,6 +84,12 @@ typedef struct CodedBitstreamUnit {
      * This supports non-byte-aligned bitstreams.
      */
     size_t   data_bit_padding;
+    /**
+     * A reference to the buffer containing data.
+     *
+     * Must be set if data is not NULL.
+     */
+    AVBufferRef *data_ref;
 
     /**
      * Pointer to the decomposed form of this unit.
@@ -91,11 +100,10 @@ typedef struct CodedBitstreamUnit {
      */
     void *content;
     /**
-     * Whether the content was supplied externally.
-     *
-     * If so, it should not be freed when freeing the unit.
+     * If content is reference counted, a reference to the buffer containing
+     * content.  Null if content is not reference counted.
      */
-    int   content_external;
+    AVBufferRef *content_ref;
 } CodedBitstreamUnit;
 
 /**
@@ -123,6 +131,12 @@ typedef struct CodedBitstreamFragment {
      * The number of bits which should be ignored in the final byte.
      */
     size_t data_bit_padding;
+    /**
+     * A reference to the buffer containing data.
+     *
+     * Must be set if data is not NULL.
+     */
+    AVBufferRef *data_ref;
 
     /**
      * Number of units in this fragment.
@@ -131,10 +145,19 @@ typedef struct CodedBitstreamFragment {
      * and has not been decomposed.
      */
     int              nb_units;
+
     /**
-     * Pointer to an array of units of length nb_units.
+     * Number of allocated units.
      *
-     * Must be NULL if nb_units is zero.
+     * Must always be >= nb_units; designed for internal use by cbs.
+     */
+     int             nb_units_allocated;
+
+    /**
+     * Pointer to an array of units of length nb_units_allocated.
+     * Only the first nb_units are valid.
+     *
+     * Must be NULL if nb_units_allocated is zero.
      */
     CodedBitstreamUnit *units;
 } CodedBitstreamFragment;
@@ -191,6 +214,14 @@ typedef struct CodedBitstreamContext {
 
 
 /**
+ * Table of all supported codec IDs.
+ *
+ * Terminated by AV_CODEC_ID_NONE.
+ */
+extern const enum AVCodecID ff_cbs_all_codec_ids[];
+
+
+/**
  * Create and initialise a new context for the given codec.
  */
 int ff_cbs_init(CodedBitstreamContext **ctx,
@@ -209,6 +240,9 @@ void ff_cbs_close(CodedBitstreamContext **ctx);
  * This also updates the internal state, so will need to be called for
  * codecs with extradata to read parameter sets necessary for further
  * parsing even if the fragment itself is not desired.
+ *
+ * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
+ * before use.
  */
 int ff_cbs_read_extradata(CodedBitstreamContext *ctx,
                           CodedBitstreamFragment *frag,
@@ -221,6 +255,9 @@ int ff_cbs_read_extradata(CodedBitstreamContext *ctx,
  * This also updates the internal state of the coded bitstream context
  * with any persistent data from the fragment which may be required to
  * read following fragments (e.g. parameter sets).
+ *
+ * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
+ * before use.
  */
 int ff_cbs_read_packet(CodedBitstreamContext *ctx,
                        CodedBitstreamFragment *frag,
@@ -233,6 +270,9 @@ int ff_cbs_read_packet(CodedBitstreamContext *ctx,
  * This also updates the internal state of the coded bitstream context
  * with any persistent data from the fragment which may be required to
  * read following fragments (e.g. parameter sets).
+ *
+ * The fragment must have been zeroed or reset via ff_cbs_fragment_reset
+ * before use.
  */
 int ff_cbs_read(CodedBitstreamContext *ctx,
                 CodedBitstreamFragment *frag,
@@ -272,34 +312,63 @@ int ff_cbs_write_packet(CodedBitstreamContext *ctx,
 
 
 /**
- * Free all allocated memory in a fragment.
+ * Free the units contained in a fragment as well as the fragment's
+ * own data buffer, but not the units array itself.
  */
-void ff_cbs_fragment_uninit(CodedBitstreamContext *ctx,
+void ff_cbs_fragment_reset(CodedBitstreamContext *ctx,
                             CodedBitstreamFragment *frag);
 
+/**
+ * Free the units array of a fragment in addition to what
+ * ff_cbs_fragment_reset does.
+ */
+void ff_cbs_fragment_free(CodedBitstreamContext *ctx,
+                          CodedBitstreamFragment *frag);
+
+/**
+ * Allocate a new internal content buffer of the given size in the unit.
+ *
+ * The content will be zeroed.
+ */
+int ff_cbs_alloc_unit_content(CodedBitstreamContext *ctx,
+                              CodedBitstreamUnit *unit,
+                              size_t size,
+                              void (*free)(void *unit, uint8_t *content));
+
+/**
+ * Allocate a new internal data buffer of the given size in the unit.
+ *
+ * The data buffer will have input padding.
+ */
+int ff_cbs_alloc_unit_data(CodedBitstreamContext *ctx,
+                           CodedBitstreamUnit *unit,
+                           size_t size);
 
 /**
  * Insert a new unit into a fragment with the given content.
  *
- * The content structure continues to be owned by the caller, and
- * will not be freed when the unit is.
+ * The content structure continues to be owned by the caller if
+ * content_buf is not supplied.
  */
 int ff_cbs_insert_unit_content(CodedBitstreamContext *ctx,
                                CodedBitstreamFragment *frag,
                                int position,
                                CodedBitstreamUnitType type,
-                               void *content);
+                               void *content,
+                               AVBufferRef *content_buf);
 
 /**
  * Insert a new unit into a fragment with the given data bitstream.
  *
- * The data buffer will be owned by the unit after this operation.
+ * If data_buf is not supplied then data must have been allocated with
+ * av_malloc() and will become owned by the unit after this call.
  */
 int ff_cbs_insert_unit_data(CodedBitstreamContext *ctx,
                             CodedBitstreamFragment *frag,
                             int position,
                             CodedBitstreamUnitType type,
-                            uint8_t *data, size_t data_size);
+                            uint8_t *data, size_t data_size,
+                            AVBufferRef *data_buf);
 
 /**
  * Delete a unit from a fragment and free all memory it uses.

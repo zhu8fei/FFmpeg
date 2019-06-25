@@ -728,10 +728,6 @@ int ff_frame_thread_init(AVCodecContext *avctx)
     FrameThreadContext *fctx;
     int i, err = 0;
 
-#if HAVE_W32THREADS
-    w32thread_init();
-#endif
-
     if (!thread_count) {
         int nb_cpus = av_cpu_count();
 #if FF_API_DEBUG_MV
@@ -890,8 +886,6 @@ static int thread_get_buffer_internal(AVCodecContext *avctx, ThreadFrame *f, int
 
     f->owner[0] = f->owner[1] = avctx;
 
-    ff_init_buffer_info(avctx, f->f);
-
     if (!(avctx->active_thread_type & FF_THREAD_FRAME))
         return ff_get_buffer(avctx, f->f, flags);
 
@@ -914,8 +908,7 @@ static int thread_get_buffer_internal(AVCodecContext *avctx, ThreadFrame *f, int
     }
 
     pthread_mutex_lock(&p->parent->buffer_mutex);
-    if (avctx->thread_safe_callbacks ||
-        avctx->get_buffer2 == avcodec_default_get_buffer2) {
+    if (THREAD_SAFE_CALLBACKS(avctx)) {
         err = ff_get_buffer(avctx, f->f, flags);
     } else {
         pthread_mutex_lock(&p->progress_mutex);
@@ -982,8 +975,7 @@ void ff_thread_release_buffer(AVCodecContext *avctx, ThreadFrame *f)
     FrameThreadContext *fctx;
     AVFrame *dst, *tmp;
     int can_direct_free = !(avctx->active_thread_type & FF_THREAD_FRAME) ||
-                          avctx->thread_safe_callbacks                   ||
-                          avctx->get_buffer2 == avcodec_default_get_buffer2;
+                          THREAD_SAFE_CALLBACKS(avctx);
 
     if (!f->f || !f->f->buf[0])
         return;

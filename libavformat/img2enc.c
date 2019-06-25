@@ -53,7 +53,7 @@ static int write_header(AVFormatContext *s)
     AVStream *st = s->streams[0];
     const AVPixFmtDescriptor *desc = av_pix_fmt_desc_get(st->codecpar->format);
 
-    av_strlcpy(img->path, s->filename, sizeof(img->path));
+    av_strlcpy(img->path, s->url, sizeof(img->path));
 
     /* find format */
     if (s->oformat->flags & AVFMT_NOFILE)
@@ -110,7 +110,8 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
                                           AV_FRAME_FILENAME_FLAGS_MULTIPLE) < 0 &&
                    img->img_number > 1) {
             av_log(s, AV_LOG_ERROR,
-                   "Could not get frame filename number %d from pattern '%s' (either set update or use a pattern like %%03d within the filename pattern)\n",
+                   "Could not get frame filename number %d from pattern '%s'. "
+                   "Use '-frames:v 1' for a single image, or '-update' option, or use a pattern such as %%03d within the filename.\n",
                    img->img_number, img->path);
             return AVERROR(EINVAL);
         }
@@ -156,7 +157,7 @@ static int write_packet(AVFormatContext *s, AVPacket *pkt)
 
         av_assert0(!img->split_planes);
 
-        ret = avformat_alloc_output_context2(&fmt, NULL, img->muxer, s->filename);
+        ret = avformat_alloc_output_context2(&fmt, NULL, img->muxer, s->url);
         if (ret < 0)
             return ret;
         st = avformat_new_stream(fmt, NULL);

@@ -52,6 +52,7 @@ typedef enum {
     HEVC_SEI_TYPE_DECODED_PICTURE_HASH                 = 132,
     HEVC_SEI_TYPE_SCALABLE_NESTING                     = 133,
     HEVC_SEI_TYPE_REGION_REFRESH_INFO                  = 134,
+    HEVC_SEI_TYPE_TIME_CODE                            = 136,
     HEVC_SEI_TYPE_MASTERING_DISPLAY_INFO               = 137,
     HEVC_SEI_TYPE_CONTENT_LIGHT_LEVEL_INFO             = 144,
     HEVC_SEI_TYPE_ALTERNATIVE_TRANSFER_CHARACTERISTICS = 147,
@@ -67,6 +68,7 @@ typedef struct HEVCSEIFramePacking {
     int arrangement_type;
     int content_interpretation_type;
     int quincunx_subsampling;
+    int current_frame_is_frame0_flag;
 } HEVCSEIFramePacking;
 
 typedef struct HEVCSEIDisplayOrientation {

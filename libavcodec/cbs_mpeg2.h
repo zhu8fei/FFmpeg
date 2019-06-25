@@ -22,6 +22,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "libavutil/buffer.h"
+
 
 enum {
     MPEG2_START_PICTURE         = 0x00,
@@ -49,7 +51,7 @@ enum {
     MPEG2_EXTENSION_PICTURE_CODING            = 0x8,
     MPEG2_EXTENSION_PICTURE_SPATIAL_SCALABLE  = 0x9,
     MPEG2_EXTENSION_PICTURE_TEMPORAL_SCALABLE = 0xa,
-    MPEG2_EXTENSION_CAMAERA_PARAMETERS        = 0xb,
+    MPEG2_EXTENSION_CAMERA_PARAMETERS         = 0xb,
     MPEG2_EXTENSION_ITU_T                     = 0xc,
 };
 
@@ -76,6 +78,7 @@ typedef struct MPEG2RawUserData {
 
     uint8_t *user_data;
     size_t user_data_length;
+    AVBufferRef *user_data_ref;
 } MPEG2RawUserData;
 
 typedef struct MPEG2RawSequenceExtension {
@@ -161,8 +164,8 @@ typedef struct MPEG2RawQuantMatrixExtension {
 } MPEG2RawQuantMatrixExtension;
 
 typedef struct MPEG2RawPictureDisplayExtension {
-    uint16_t frame_centre_horizontal_offset[3];
-    uint16_t frame_centre_vertical_offset[3];
+    int16_t frame_centre_horizontal_offset[3];
+    int16_t frame_centre_vertical_offset[3];
 } MPEG2RawPictureDisplayExtension;
 
 typedef struct MPEG2RawExtensionData {
@@ -195,6 +198,7 @@ typedef struct MPEG2RawSliceHeader {
 
     size_t extra_information_length;
     uint8_t *extra_information;
+    AVBufferRef *extra_information_ref;
 } MPEG2RawSliceHeader;
 
 typedef struct MPEG2RawSlice {
@@ -203,6 +207,7 @@ typedef struct MPEG2RawSlice {
     uint8_t *data;
     size_t   data_size;
     int      data_bit_start;
+    AVBufferRef *data_ref;
 } MPEG2RawSlice;
 
 
